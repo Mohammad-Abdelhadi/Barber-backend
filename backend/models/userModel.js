@@ -22,7 +22,7 @@ const userSchema = new Schema({
 
   appointments: {
     type: Array,
-    default: null,
+    default: [],
   },
 });
 
