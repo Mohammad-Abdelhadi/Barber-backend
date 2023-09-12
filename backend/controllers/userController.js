@@ -64,7 +64,7 @@ const deleteUser = async (req, res) => {
   }
 };
 const postAppointment = async (req, res) => {
-  const { userId, barberName, services, time } = req.body;
+  const { userId, barberName, services, time, status } = req.body;
 
   try {
     // Find the user by their ID
@@ -79,6 +79,7 @@ const postAppointment = async (req, res) => {
       barberName,
       services,
       time,
+      status,
     };
 
     // Push the new appointment to the user's appointments array
@@ -87,14 +88,81 @@ const postAppointment = async (req, res) => {
     // Save the updated user object to the database
     await user.save();
 
-    res
-      .status(201)
-      .json({
-        message: "Appointment created successfully",
-        appointment: newAppointment,
-      });
+    res.status(201).json({
+      message: "Appointment created successfully",
+      appointment: newAppointment,
+    });
   } catch (error) {
     res.status(400).json({ error: error.message });
+  }
+};
+const getallappoinemnts = async (req, res) => {
+  try {
+    // Find all users and select only the "appointments" field
+    const appointments = await User.find({}, "appointments");
+
+    // Extract the appointments from the retrieved data
+    const allAppointments = appointments
+      .map((user) => user.appointments)
+      .flat();
+
+    res.status(200).json(allAppointments);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+const getAppointmentsForUser = async (req, res) => {
+  const userId = req.params.userId; // Get the user ID from the request parameters
+
+  try {
+    // Find the user by their ID and select the "appointments" field
+    const user = await User.findById(userId, "appointments");
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    const appointments = user.appointments || []; // Get the appointments or an empty array if none exist
+
+    res.status(200).json(appointments);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+const updateAppointmentStatus = async (req, res) => {
+  const { userId, appointmentId } = req.params;
+  const { newStatus } = req.body;
+
+  try {
+    // Find the user by their ID and select the "appointments" field
+    const user = await User.findById(userId, "appointments");
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // Find the appointment by its ID
+    const appointment = user.appointments.find(
+      (apt) => apt._id.toString() === appointmentId
+    );
+
+    if (!appointment) {
+      return res.status(404).json({ message: "Appointment not found" });
+    }
+
+    // Update the status of the appointment
+    appointment.status = newStatus;
+
+    // Save the updated user object to the database
+    await user.save();
+
+    res
+      .status(200)
+      .json({ message: "Appointment status updated successfully" });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
   }
 };
 
@@ -104,4 +172,7 @@ module.exports = {
   getAllusers,
   deleteUser,
   postAppointment,
+  getallappoinemnts,
+  getAppointmentsForUser,
+  updateAppointmentStatus,
 };

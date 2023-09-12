@@ -49,6 +49,11 @@ const userSchema = new Schema({
         type: String,
         required: true,
       },
+      status: {
+        type: String,
+        enum: ["pending", "accepted", "rejected"],
+        default: "pending",
+      },
     },
   ],
 });
