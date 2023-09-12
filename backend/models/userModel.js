@@ -19,13 +19,47 @@ const userSchema = new Schema({
     enum: ["user", "admin"],
     default: "user",
   },
-
-  appointments: {
-    type: Array,
-    default: [],
-  },
+  appointments: [
+    {
+      barberName: {
+        type: String,
+        required: true,
+      },
+      services: {
+        hairCut: {
+          price: Number,
+        },
+        hairColoring: {
+          price: Number,
+        },
+        hairWash: {
+          price: Number,
+        },
+        shaving: {
+          price: Number,
+        },
+        skinCare: {
+          price: Number,
+        },
+        hairDryer: {
+          price: Number,
+        },
+      },
+      time: {
+        type: String,
+        required: true,
+      },
+    },
+  ],
 });
 
+// Set appointments field to null by default
+userSchema.pre("save", function (next) {
+  if (this.isNew) {
+    this.appointments = null;
+  }
+  next();
+});
 // static signup method
 userSchema.statics.signup = async function (
   email,
@@ -57,7 +91,7 @@ userSchema.statics.signup = async function (
     email,
     password: hash,
     role,
-    appointments: [],
+    appointments,
   });
 
   return user;

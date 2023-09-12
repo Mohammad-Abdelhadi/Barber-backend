@@ -28,7 +28,7 @@ const signupUser = async (req, res) => {
   try {
     const user = await User.signup(email, password, role);
 
-    // create a token
+    // Create a token
     const token = createToken(user._id);
 
     res.status(200).json({ email, token, role, appointments: [] });
@@ -36,6 +36,7 @@ const signupUser = async (req, res) => {
     res.status(400).json({ error: error.message });
   }
 };
+
 // Get All users
 const getAllusers = async (req, res) => {
   const allusers = await User.find({});
@@ -62,5 +63,45 @@ const deleteUser = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+const postAppointment = async (req, res) => {
+  const { userId, barberName, services, time } = req.body;
 
-module.exports = { signupUser, loginUser, getAllusers, deleteUser };
+  try {
+    // Find the user by their ID
+    const user = await User.findById(userId);
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // Create a new appointment object
+    const newAppointment = {
+      barberName,
+      services,
+      time,
+    };
+
+    // Push the new appointment to the user's appointments array
+    user.appointments.push(newAppointment);
+
+    // Save the updated user object to the database
+    await user.save();
+
+    res
+      .status(201)
+      .json({
+        message: "Appointment created successfully",
+        appointment: newAppointment,
+      });
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+};
+
+module.exports = {
+  signupUser,
+  loginUser,
+  getAllusers,
+  deleteUser,
+  postAppointment,
+};

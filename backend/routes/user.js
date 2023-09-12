@@ -6,6 +6,7 @@ const {
   signupUser,
   getAllusers,
   deleteUser,
+  postAppointment
 } = require("../controllers/userController");
 
 const router = express.Router();
@@ -19,5 +20,6 @@ router.post("/login", loginUser);
 
 // signup route
 router.post("/signup", signupUser);
+router.post("/postAppointment", postAppointment);
 
 module.exports = router;
