@@ -25,26 +25,31 @@ const userSchema = new Schema({
         type: String,
         required: true,
       },
+      // services: {
+      //   hairCut: {
+      //     price: Number,
+      //   },
+      //   hairColoring: {
+      //     price: Number,
+      //   },
+      //   hairWash: {
+      //     price: Number,
+      //   },
+      //   shaving: {
+      //     price: Number,
+      //   },
+      //   skinCare: {
+      //     price: Number,
+      //   },
+      //   hairDryer: {
+      //     price: Number,
+      //   },
+      // },
       services: {
-        hairCut: {
-          price: Number,
-        },
-        hairColoring: {
-          price: Number,
-        },
-        hairWash: {
-          price: Number,
-        },
-        shaving: {
-          price: Number,
-        },
-        skinCare: {
-          price: Number,
-        },
-        hairDryer: {
-          price: Number,
-        },
+        type: Object, // Change this to represent a flat object
+        required: true,
       },
+
       time: {
         type: String,
         required: true,
@@ -59,12 +64,12 @@ const userSchema = new Schema({
 });
 
 // Set appointments field to null by default
-userSchema.pre("save", function (next) {
-  if (this.isNew) {
-    this.appointments = null;
-  }
-  next();
-});
+// userSchema.pre("save", function (next) {
+//   if (this.isNew) {
+//     this.appointments = null;
+//   }
+//   next();
+// });
 // static signup method
 userSchema.statics.signup = async function (
   email,
@@ -96,7 +101,7 @@ userSchema.statics.signup = async function (
     email,
     password: hash,
     role,
-    appointments,
+    appointments: [],
   });
 
   return user;

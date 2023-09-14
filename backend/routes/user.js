@@ -1,4 +1,6 @@
 const express = require("express");
+const requireAuth = require("../middleware/requireAuth");
+const AdminRequireAuth = require("../middleware/AdminRequireAuth");
 
 // controller functions
 const {
@@ -15,7 +17,7 @@ const {
 const router = express.Router();
 
 // Get all users
-router.get("/", getAllusers);
+router.get("/", AdminRequireAuth, getAllusers);
 // Get all users
 router.delete("/delete/:id", deleteUser);
 // login route

@@ -47,6 +47,7 @@ const getAllusers = async (req, res) => {
     res.status(400).json({ error: error.message });
   }
 };
+
 const deleteUser = async (req, res) => {
   const { id } = req.params; // Use req.params.id
   try {
@@ -63,8 +64,42 @@ const deleteUser = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+// const postAppointment = async (req, res) => {
+//   const { userId, barberName, services, time, status } = req.body;
+
+//   try {
+//     // Find the user by their ID
+//     const user = await User.findById(userId);
+
+//     if (!user) {
+//       return res.status(404).json({ message: "User not found" });
+//     }
+
+//     // Create a new appointment object
+//     const newAppointment = {
+//       barberName,
+//       services,
+//       time,
+//       status,
+//     };
+
+//     // Push the new appointment to the user's appointments array
+//     user.appointments.push(newAppointment);
+
+//     // Save the updated user object to the database
+//     await user.save();
+
+//     res.status(201).json({
+//       message: "Appointment created successfully",
+//       appointment: newAppointment,
+//     });
+//   } catch (error) {
+//     res.status(400).json({ error: error.message });
+//   }
+// };
+
 const postAppointment = async (req, res) => {
-  const { userId, barberName, services, time, status } = req.body;
+  const { userId, barberName, appointments } = req.body;
 
   try {
     // Find the user by their ID
@@ -74,39 +109,83 @@ const postAppointment = async (req, res) => {
       return res.status(404).json({ message: "User not found" });
     }
 
-    // Create a new appointment object
-    const newAppointment = {
-      barberName,
-      services,
-      time,
-      status,
-    };
-
-    // Push the new appointment to the user's appointments array
-    user.appointments.push(newAppointment);
+    // Loop through the appointments array and push each appointment to the user's appointments
+    for (const appointmentData of appointments) {
+      user.appointments.push(appointmentData);
+    }
 
     // Save the updated user object to the database
     await user.save();
 
     res.status(201).json({
-      message: "Appointment created successfully",
-      appointment: newAppointment,
+      message: "Appointments created successfully",
+      appointments,
     });
   } catch (error) {
     res.status(400).json({ error: error.message });
   }
 };
+
+// const postAppointment = async (req, res) => {
+//   const { userId, barberName, service, status } = req.body;
+
+//   try {
+//     // Find the user by their ID
+//     const user = await User.findById(userId);
+
+//     if (!user) {
+//       return res.status(404).json({ message: "User not found" });
+//     }
+
+//     // Define default times for each service (in minutes)
+//     const defaultTimes = {
+//       hairCut: 15,
+//       hairColoring: 20,
+//       hairWash: 15,
+//       shaving: 10,
+//       skinCare: 25,
+//       hairDryer: 15,
+//     };
+
+//     // Create a new appointment object
+//     const newAppointment = {
+//       barberName,
+//       services: {
+//         [service]: {
+//           price: 0, // You can set the price as needed
+//         },
+//       },
+//       time: `Default time: ${defaultTimes[service]} minutes`,
+//       status,
+//     };
+
+//     // Push the new appointment to the user's appointments array
+//     user.appointments.push(newAppointment);
+
+//     // Save the updated user object to the database
+//     await user.save();
+
+//     res.status(201).json({
+//       message: "Appointment created successfully",
+//       appointment: newAppointment,
+//     });
+//   } catch (error) {
+//     res.status(400).json({ error: error.message });
+//   }
+// };
+
 const getallappoinemnts = async (req, res) => {
   try {
-    // Find all users and select only the "appointments" field
-    const appointments = await User.find({}, "appointments");
+    // Find all users and select only the "_id" and "appointments" fields
+    const users = await User.find({}, "_id appointments");
 
-    // Extract the appointments from the retrieved data
-    const allAppointments = appointments
-      .map((user) => user.appointments)
-      .flat();
+    // Create an array of objects containing user ID and their appointments
+    const usersWithAppointments = users.map((user) => ({
+      userId: user._id,
+      appointments: user.appointments,
+    }));
 
-    res.status(200).json(allAppointments);
+    res.status(200).json(usersWithAppointments);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
