@@ -25,30 +25,18 @@ const userSchema = new Schema({
         type: String,
         required: true,
       },
+
       // services: {
-      //   hairCut: {
-      //     price: Number,
-      //   },
-      //   hairColoring: {
-      //     price: Number,
-      //   },
-      //   hairWash: {
-      //     price: Number,
-      //   },
-      //   shaving: {
-      //     price: Number,
-      //   },
-      //   skinCare: {
-      //     price: Number,
-      //   },
-      //   hairDryer: {
-      //     price: Number,
-      //   },
+      //   type: Object, // Change this to represent a flat object
+      //   required: true,
       // },
-      services: {
-        type: Object, // Change this to represent a flat object
-        required: true,
-      },
+      services: [
+        {
+          name: String,
+          price: Number,
+          time: Number,
+        },
+      ],
 
       time: {
         type: String,
