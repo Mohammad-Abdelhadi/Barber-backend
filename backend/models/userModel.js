@@ -21,17 +21,20 @@ const userSchema = new Schema({
   },
   appointments: [
     {
-      barberName: {
-        type: String,
-        required: true,
+      barber: {
+        id: {
+          type: Number, // Incremental id for barbers
+          required: true,
+        },
+        name: String, // Barber name
       },
-
-      // services: {
-      //   type: Object, // Change this to represent a flat object
-      //   required: true,
-      // },
+    
       services: [
         {
+          id: {
+            type: Number, // Use Number type for IDs
+            required: true, // Make it required
+          },
           name: String,
           price: Number,
           time: Number,
@@ -115,3 +118,7 @@ userSchema.statics.login = async function (email, password, role) {
 };
 
 module.exports = mongoose.model("User", userSchema);
+// services: {
+//   type: Object, // Change this to represent a flat object
+//   required: true,
+// },

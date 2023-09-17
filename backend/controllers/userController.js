@@ -64,7 +64,7 @@ const deleteUser = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
-// const postAppointment = async (req, res) => {
+
 //   const { userId, barberName, services, time, status } = req.body;
 
 //   try {
@@ -126,8 +126,6 @@ const postAppointment = async (req, res) => {
   }
 };
 
-// const postAppointment = async (req, res) => {
-//   const { userId, barberName, service, status } = req.body;
 
 //   try {
 //     // Find the user by their ID
