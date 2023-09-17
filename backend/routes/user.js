@@ -29,7 +29,7 @@ router.post("/signup", signupUser);
 // *********** handle appoinments ********
 
 // Create New appoinemnt
-router.post("/postAppointment", postAppointment);
+router.post("/postAppointment/:id", postAppointment);
 // Get All appoinemnts for all users.
 router.get("/getallappoinemnts", getallappoinemnts);
 

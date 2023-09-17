@@ -99,8 +99,8 @@ const deleteUser = async (req, res) => {
 // };
 
 const postAppointment = async (req, res) => {
-  const { userId, barberName, appointments } = req.body;
-
+  const { barberName, appointments } = req.body;
+  userId = req.params.id;
   try {
     // Find the user by their ID
     const user = await User.findById(userId);
@@ -125,7 +125,6 @@ const postAppointment = async (req, res) => {
     res.status(400).json({ error: error.message });
   }
 };
-
 
 //   try {
 //     // Find the user by their ID
