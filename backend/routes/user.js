@@ -12,14 +12,20 @@ const {
   getallappoinemnts,
   getAppointmentsForUser,
   updateAppointmentStatus,
+  updateUser,
 } = require("../controllers/userController");
 
 const router = express.Router();
 
 // Get all users
 router.get("/", getAllusers);
-// Get all users
+
+// delete specif user
 router.delete("/delete/:id", deleteUser);
+
+// update the user information
+router.patch("/updateuserinfo/:id", updateUser);
+
 // login route
 router.post("/login", loginUser);
 

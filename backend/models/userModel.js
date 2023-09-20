@@ -28,7 +28,7 @@ const userSchema = new Schema({
         },
         name: String, // Barber name
       },
-    
+
       services: [
         {
           id: {
@@ -49,6 +49,10 @@ const userSchema = new Schema({
         type: String,
         required: true,
       },
+      totalprice: {
+        type: Number,
+      },
+      totaltime: { type: Number },
       status: {
         type: String,
         enum: ["pending", "accepted", "rejected", "completed"],

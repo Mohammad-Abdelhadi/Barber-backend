@@ -48,6 +48,8 @@ const getAllusers = async (req, res) => {
   }
 };
 
+// delete User
+
 const deleteUser = async (req, res) => {
   const { id } = req.params; // Use req.params.id
   try {
@@ -65,42 +67,12 @@ const deleteUser = async (req, res) => {
   }
 };
 
-//   const { userId, barberName, services, time, status } = req.body;
+// Update the user information
 
-//   try {
-//     // Find the user by their ID
-//     const user = await User.findById(userId);
+const updateUser = async (req, res) => {
+  const userId = req.params.id;
+  const updatedUserData = req.body;
 
-//     if (!user) {
-//       return res.status(404).json({ message: "User not found" });
-//     }
-
-//     // Create a new appointment object
-//     const newAppointment = {
-//       barberName,
-//       services,
-//       time,
-//       status,
-//     };
-
-//     // Push the new appointment to the user's appointments array
-//     user.appointments.push(newAppointment);
-
-//     // Save the updated user object to the database
-//     await user.save();
-
-//     res.status(201).json({
-//       message: "Appointment created successfully",
-//       appointment: newAppointment,
-//     });
-//   } catch (error) {
-//     res.status(400).json({ error: error.message });
-//   }
-// };
-
-const postAppointment = async (req, res) => {
-  const { barberName, appointments } = req.body;
-  userId = req.params.id;
   try {
     // Find the user by their ID
     const user = await User.findById(userId);
@@ -109,24 +81,48 @@ const postAppointment = async (req, res) => {
       return res.status(404).json({ message: "User not found" });
     }
 
-    // Loop through the appointments array and push each appointment to the user's appointments
-    for (const appointmentData of appointments) {
-      user.appointments.push(appointmentData);
-    }
+    // Update user data with the new values
+    user.email = updatedUserData.email || user.email;
+    user.password = updatedUserData.password || user.password;
+    user.role = updatedUserData.role || user.role;
 
     // Save the updated user object to the database
     await user.save();
 
-    res.status(201).json({
-      message: "Appointments created successfully",
-      appointments,
-    });
+    res.status(200).json({ message: "User updated successfully", user });
   } catch (error) {
-    res.status(400).json({ error: error.message });
+    res.status(500).json({ error: error.message });
   }
 };
 
+// const postAppointment = async (req, res) => {
+//   const { barberName, appointments } = req.body;
+//   userId = req.params.id;
 //   try {
+//     // Find the user by their ID
+//     const user = await User.findById(userId);
+
+//     if (!user) {
+//       return res.status(404).json({ message: "User not found" });
+//     }
+
+//     // Loop through the appointments array and push each appointment to the user's appointments
+//     for (const appointmentData of appointments) {
+//       user.appointments.push(appointmentData);
+//     }
+
+//     // Save the updated user object to the database
+//     await user.save();
+
+//     res.status(201).json({
+//       message: "Appointments created successfully",
+//       appointments,
+//     });
+//   } catch (error) {
+//     res.status(400).json({ error: error.message });
+//   }
+// };
+
 //     // Find the user by their ID
 //     const user = await User.findById(userId);
 
@@ -170,6 +166,45 @@ const postAppointment = async (req, res) => {
 //     res.status(400).json({ error: error.message });
 //   }
 // };
+const postAppointment = async (req, res) => {
+  const { barberName, appointments } = req.body;
+  const userId = req.params.id;
+
+  try {
+    const user = await User.findById(userId);
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // Check for appointment conflicts
+    for (const appointmentData of appointments) {
+      const { date, time } = appointmentData;
+
+      const conflict = user.appointments.find(
+        (apt) => apt.date === date && apt.time === time
+      );
+
+      if (conflict) {
+        return res.status(409).json({
+          message: `Conflict: Appointment at ${date} ${time} already exists.`,
+        });
+      }
+
+      // Add the new appointment
+      user.appointments.push(appointmentData);
+    }
+
+    await user.save();
+
+    res.status(201).json({
+      message: "Appointments created successfully",
+      appointments,
+    });
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+};
 
 const getallappoinemnts = async (req, res) => {
   try {
@@ -199,7 +234,8 @@ const getAppointmentsForUser = async (req, res) => {
       return res.status(404).json({ message: "User not found" });
     }
 
-    const appointments = user.appointments || []; // Get the appointments or an empty array if none exist
+    const appointments = user.appointments || [];
+    // Get the appointments or an empty array if none exist
 
     res.status(200).json(appointments);
   } catch (error) {
@@ -251,4 +287,5 @@ module.exports = {
   getallappoinemnts,
   getAppointmentsForUser,
   updateAppointmentStatus,
+  updateUser,
 };
