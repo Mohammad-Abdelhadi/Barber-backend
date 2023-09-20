@@ -13,6 +13,8 @@ const {
   getAppointmentsForUser,
   updateAppointmentStatus,
   updateUser,
+  addBarber,
+  getbarbers,
 } = require("../controllers/userController");
 
 const router = express.Router();
@@ -33,6 +35,9 @@ router.post("/login", loginUser);
 router.post("/signup", signupUser);
 
 // *********** handle appoinments ********
+// post barber :
+router.post("/addbarber/:userId", addBarber);
+router.get("/getbarbers/:userId", getbarbers);
 
 // Create New appoinemnt
 router.post("/postAppointment/:id", postAppointment);

@@ -19,6 +19,12 @@ const userSchema = new Schema({
     enum: ["user", "admin"],
     default: "user",
   },
+  barbers: {
+    type: Array,
+    default: function () {
+      return this.role === "admin" ? [] : undefined;
+    },
+  },
   appointments: [
     {
       barber: {
@@ -27,6 +33,9 @@ const userSchema = new Schema({
           required: true,
         },
         name: String, // Barber name
+        availableTime: {
+          type: [String], // Array of available time slots for each barber
+        },
       },
 
       services: [
@@ -70,12 +79,7 @@ const userSchema = new Schema({
 //   next();
 // });
 // static signup method
-userSchema.statics.signup = async function (
-  email,
-  password,
-  role,
-  appointments
-) {
+userSchema.statics.signup = async function (email, password, role) {
   // validation
   if (!email || !password) {
     throw Error("All fields must be filled");
@@ -96,11 +100,11 @@ userSchema.statics.signup = async function (
   const salt = await bcrypt.genSalt(10);
   const hash = await bcrypt.hash(password, salt);
 
+  // Create the user without a barbers field
   const user = await this.create({
     email,
     password: hash,
     role,
-    appointments: [],
   });
 
   return user;

@@ -26,12 +26,30 @@ const signupUser = async (req, res) => {
   const { email, password, role } = req.body;
 
   try {
-    const user = await User.signup(email, password, role);
+    let user;
+
+    if (role === "admin") {
+      // If the role is admin, create an admin user with barbers
+      // Define the barbers array or provide an empty array if none
+      const barbers = []; // You can define your barbers here
+
+      user = await User.signup(email, password, role, barbers);
+    } else {
+      // If the role is user, create a user with appointments
+      user = await User.signup(email, password, role, []);
+    }
 
     // Create a token
     const token = createToken(user._id);
 
-    res.status(200).json({ email, token, role, appointments: [] });
+    // Respond with user data
+    if (user.role === "admin") {
+      res.status(200).json({ email, token, role, barbers: user.barbers });
+      console.log(user.role);
+    } else {
+      res.status(200).json({ email, token, role, appointments: [] });
+      console.log(user.role);
+    }
   } catch (error) {
     res.status(400).json({ error: error.message });
   }
@@ -94,10 +112,6 @@ const updateUser = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
-
-// const postAppointment = async (req, res) => {
-//   const { barberName, appointments } = req.body;
-//   userId = req.params.id;
 //   try {
 //     // Find the user by their ID
 //     const user = await User.findById(userId);
@@ -166,8 +180,48 @@ const updateUser = async (req, res) => {
 //     res.status(400).json({ error: error.message });
 //   }
 // };
+// const postAppointment = async (req, res) => {
+//   const { barberName, appointments } = req.body;
+//   const userId = req.params.id;
+
+//   try {
+//     const user = await User.findById(userId);
+
+//     if (!user) {
+//       return res.status(404).json({ message: "User not found" });
+//     }
+
+//     // Check for appointment conflicts
+//     for (const appointmentData of appointments) {
+//       const { date, time } = appointmentData;
+
+//       const conflict = user.appointments.find(
+//         (apt) => apt.date === date && apt.time === time
+//       );
+
+//       if (conflict) {
+//         return res.status(409).json({
+//           message: `Conflict: Appointment at ${date} ${time} already exists.`,
+//         });
+//       }
+
+//       // Add the new appointment
+//       user.appointments.push(appointmentData);
+//     }
+
+//     await user.save();
+
+//     res.status(201).json({
+//       message: "Appointments created successfully",
+//       appointments,
+//     });
+//   } catch (error) {
+//     res.status(400).json({ error: error.message });
+//   }
+// };
+
 const postAppointment = async (req, res) => {
-  const { barberName, appointments } = req.body;
+  const { appointments } = req.body;
   const userId = req.params.id;
 
   try {
@@ -177,21 +231,22 @@ const postAppointment = async (req, res) => {
       return res.status(404).json({ message: "User not found" });
     }
 
-    // Check for appointment conflicts
     for (const appointmentData of appointments) {
-      const { date, time } = appointmentData;
+      const { barber, date, time } = appointmentData;
 
+      // Check for appointment conflicts
       const conflict = user.appointments.find(
-        (apt) => apt.date === date && apt.time === time
+        (apt) =>
+          apt.barber.id === barber.id && apt.date === date && apt.time === time
       );
 
       if (conflict) {
         return res.status(409).json({
-          message: `Conflict: Appointment at ${date} ${time} already exists.`,
+          message: `Conflict: Appointment with barber ${barber.name} at ${date} ${time} already exists.`,
         });
       }
 
-      // Add the new appointment
+      // Create the appointment
       user.appointments.push(appointmentData);
     }
 
@@ -202,7 +257,8 @@ const postAppointment = async (req, res) => {
       appointments,
     });
   } catch (error) {
-    res.status(400).json({ error: error.message });
+    console.error("Error:", error);
+    res.status(500).json({ error: error.message });
   }
 };
 
@@ -243,6 +299,26 @@ const getAppointmentsForUser = async (req, res) => {
   }
 };
 
+const getbarbers = async (req, res) => {
+  const userId = req.params.userId; // Get the user ID from the request parameters
+
+  try {
+    // Find the user by their ID and select the "appointments" field
+    const user = await User.findById(userId, "barbers");
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    const barbers = user.barbers || [];
+    // Get the appointments or an empty array if none exist
+
+    res.status(200).json(barbers);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
 const updateAppointmentStatus = async (req, res) => {
   const { userId, appointmentId } = req.params;
   const { newStatus } = req.body;
@@ -278,6 +354,108 @@ const updateAppointmentStatus = async (req, res) => {
   }
 };
 
+// const addBarber = async (req, res) => {
+//   const { id, name, availableTime } = req.body;
+
+//   try {
+//     const user = await User.findById(req.params.userId);
+
+//     if (!user) {
+//       return res.status(404).json({ message: "User not found" });
+//     }
+
+//     // Check if the user is an admin
+//     if (user.role !== "admin") {
+//       return res
+//         .status(403)
+//         .json({ message: "Only admin users can add barbers" });
+//     }
+
+//     // Check if a barber with the same ID already exists
+//     const existingBarber = user.barbers.find((barber) => barber.id === id);
+
+//     if (existingBarber) {
+//       return res
+//         .status(409)
+//         .json({ message: `Barber with ID ${id} already exists` });
+//     }
+
+//     // Add the new barber to the user's barbers array
+//     user.barbers.push({ id, name, availableTime });
+
+//     // Save the updated user object with the new barber
+//     await user.save();
+
+//     res.status(201).json({
+//       message: "Barber added successfully",
+//       barber: { id, name, availableTime },
+//     });
+//   } catch (error) {
+//     res.status(500).json({ error: error.message });
+//   }
+// };
+const addBarber = async (req, res) => {
+  const { id, name } = req.body;
+
+  try {
+    const user = await User.findById(req.params.userId);
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // Check if the user is an admin
+    if (user.role !== "admin") {
+      return res
+        .status(403)
+        .json({ message: "Only admin users can add barbers" });
+    }
+
+    // Check if a barber with the same ID already exists
+    const existingBarber = user.barbers.find((barber) => barber.id === id);
+
+    if (existingBarber) {
+      return res
+        .status(409)
+        .json({ message: `Barber with ID ${id} already exists` });
+    }
+
+    // Generate available time slots from 9:00 AM to 10:00 PM
+    const availableTime = generateAvailableTimeSlots();
+
+    // Add the new barber to the user's barbers array
+    user.barbers.push({ id, name, availableTime });
+
+    // Save the updated user object with the new barber
+    await user.save();
+
+    res.status(201).json({
+      message: "Barber added successfully",
+      barber: { id, name, availableTime },
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+// Function to generate available time slots
+function generateAvailableTimeSlots() {
+  const availableTime = [];
+  const startTime = 9; // Start at 9:00 AM
+  const endTime = 22; // End at 10:00 PM
+
+  for (let hour = startTime; hour <= endTime; hour++) {
+    for (let minute = 0; minute < 60; minute += 60) {
+      const timeSlot = `${hour.toString().padStart(2, "0")}:${minute
+        .toString()
+        .padStart(2, "0")}`;
+      availableTime.push(timeSlot);
+    }
+  }
+
+  return availableTime;
+}
+
 module.exports = {
   signupUser,
   loginUser,
@@ -288,4 +466,6 @@ module.exports = {
   getAppointmentsForUser,
   updateAppointmentStatus,
   updateUser,
+  addBarber,
+  getbarbers,
 };
